@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Mapping\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AiAgentEconomy.Application\AiAgentEconomy.Application.csproj" />
+    <ProjectReference Include="..\AiAgentEconomy.Domain\AiAgentEconomy.Domain.csproj" />
+    <ProjectReference Include="..\AiAgentEconomy.Infrastructure\AiAgentEconomy.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
