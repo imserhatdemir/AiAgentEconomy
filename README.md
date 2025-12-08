@@ -1,79 +1,81 @@
-# 🤖 AiAgentEconomy  
-**Autonomous AI Agent Economy – AI Agents with Wallets & On-Chain Spending**  
+# AiAgentEconomy
+
+**Autonomous AI Agent Economy – AI Agents with Wallets & On-Chain Spending**
 C# .NET 9 · Semantic Kernel · Arbitrum Blockchain · Worker Runtime Architecture
 
 ---
 
-## 📌 Vizyon
+## Vision
 
-2026 sonrası dijital ekonomide yapay zekalar artık yalnızca konuşmayacak — **harcama yapacak.**  
-Bu proje, yapay zeka ajanlarının kendi **cüzdanlarına sahip olduğu**, **bütçe yönettiği**, **servis satın aldığı** ve **otonom ekonomik aktörler haline geldiği** bir altyapı geliştirir.
+In the post-2026 digital economy, artificial intelligence will not only communicate but also have the ability to spend. This project aims to develop an infrastructure where AI agents own their own wallets, manage budgets, purchase services, and operate as autonomous economic entities.
 
-> **AI Agent = Cüzdanı olan, karar verebilen, blockchain üzerinde işlem yapabilen dijital çalışan.**
+**AI Agent = A digital worker capable of decision-making and executing transactions on the blockchain with its own wallet.**
 
-Bu repo geleceğin **AI Agent Economy** dünyasının temelini atmak için oluşturulmuş açık geliştirme ortamıdır.
-
----
-
-## 🚀 Amaçlar
-
-- AI ajanları oluşturma ve yönetme
-- Ajanlara **wallet** bağlama (Arbitrum Testnet)
-- Harcama limitleri + kurallar (policy) tanımlayabilme
-- Marketplace’ten servis tarama & satın alma algoritması
-- **Semantic Kernel** ile karar verme + planlama
-- Blockchain üzerinden ödeme / transfer
+This repository is created as an open development environment that lays the foundation for the future of the AI Agent Economy.
 
 ---
 
-## 🏗 Mimarinin Büyük Resmi
+## Objectives
 
+* Create and manage AI agents
+* Connect blockchain wallets to agents (Arbitrum Testnet)
+* Define spending policies and limits
+* Scan marketplace services and perform autonomous purchasing
+* Execute decision-making and planning using Semantic Kernel
+* Process payments and transfers via blockchain
+
+---
+
+## Architecture Overview
+
+```
 AiAgentEconomy.sln
 │
 ├─ src/
-│ ├─ AiAgentEconomy.Domain # Core Entities, Enums, Value Objects
-│ ├─ AiAgentEconomy.Application # Use Cases, Services, Interfaces
-│ ├─ AiAgentEconomy.Infrastructure # EF Core, Repositories, Blockchain (Nethereum)
-│ ├─ AiAgentEconomy.Api # ASP.NET Web API (CRUD + UI Gateway)
-│ ├─ AiAgentEconomy.AgentRuntime # Worker Service -> Semantic Kernel Agent Loop
-│ └─ AiAgentEconomy.Contracts # Shared DTOs/Events (opsiyonel)
+│ ├─ AiAgentEconomy.Domain              # Core Entities, Enums, Value Objects
+│ ├─ AiAgentEconomy.Application         # Use Cases, Services, Interfaces
+│ ├─ AiAgentEconomy.Infrastructure      # EF Core, Repositories, Blockchain (Nethereum)
+│ ├─ AiAgentEconomy.Api                 # ASP.NET Web API (CRUD + Gateway)
+│ ├─ AiAgentEconomy.AgentRuntime        # Worker Service -> Semantic Kernel Agent Loop
+│ └─ AiAgentEconomy.Contracts           # Shared DTOs/Events (optional)
 │
 └─ tests/
-└─ AiAgentEconomy.Tests # Unit/Integration Tests
+   └─ AiAgentEconomy.Tests              # Unit/Integration Tests
+```
 
-📌 **Mimari prensip**
+### Architectural Principles
 
-| Katman | Sorumluluk | Bağımlılık |
-|---|---|---|
-| **Domain** | İşin kalbi | Kimseye bağlı değil |
-| **Application** | Use-case ve arayüz sözleşmeleri | Domain’e bağlı |
-| **Infrastructure** | DB, Blockchain, External IO | Domain + Application |
-| **Api** | Public HTTP yüzü | Domain + Application + Infrastructure |
-| **AgentRuntime** | Arka plan AI Agent çalışma motoru | Domain + Application + Infrastructure |
-
----
-
-## 🧩 Ana Bileşenler
-
-| Modül | Açıklama |
-|---|---|
-| **Domain** | Agent, Wallet, ServiceVendor, Policy, Transaction modelleri |
-| **Application** | Agent oluşturma, Wallet yönetimi, Agent Engine service interface |
-| **Infrastructure** | EF Core + Repository + Nethereum Blockchain Implementasyonu |
-| **Api** | REST endpointler (Agent/Wallet/Service/Transaction) |
-| **AgentRuntime** | Worker service → periyodik Agent çalıştırma loopu |
-| **Semantic Kernel** | Karar verme & Tool bazlı işlem tetikleme |
+| Layer          | Responsibility                                    | Dependency                                       |
+| -------------- | ------------------------------------------------- | ------------------------------------------------ |
+| Domain         | Core business layer                               | No dependencies                                  |
+| Application    | Use cases and service abstractions                | Depends on Domain                                |
+| Infrastructure | Database, Blockchain, External IO implementations | Depends on Domain + Application                  |
+| Api            | Public HTTP interface                             | Depends on Domain + Application + Infrastructure |
+| AgentRuntime   | Background AI agent processing engine             | Depends on Domain + Application + Infrastructure |
 
 ---
 
-## 🛠 Teknolojiler
+## Core Components
 
-- .NET 9 Web API
-- Semantic Kernel (AI Reasoning)
-- Entity Framework Core
-- SQL / PostgreSQL esnek yapı
-- Arbitrum Blockchain (Nethereum)
-- Worker Service Background Loop
-- Clean Architecture + SOLID
+| Module          | Description                                                             |
+| --------------- | ----------------------------------------------------------------------- |
+| Domain          | Models for Agent, Wallet, ServiceVendor, Policy, Transaction            |
+| Application     | Agent creation, wallet management, orchestration interfaces             |
+| Infrastructure  | EF Core, Repository structure, Blockchain implementation with Nethereum |
+| Api             | REST endpoints (Agent/Wallet/Service/Transaction)                       |
+| AgentRuntime    | Worker service for scheduled agent execution loop                       |
+| Semantic Kernel | Decision making and tool-based task execution                           |
+
+---
+
+## Technologies
+
+* .NET 9 Web API
+* Semantic Kernel (AI Reasoning)
+* Entity Framework Core
+* SQL / PostgreSQL compatible structure
+* Arbitrum Blockchain via Nethereum
+* Worker Service Background Runtime
+* Clean Architecture pattern & SOLID principles
 
 ---
