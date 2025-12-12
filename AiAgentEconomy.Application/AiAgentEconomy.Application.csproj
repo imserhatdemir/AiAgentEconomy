@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AiAgentEconomy.Contracts\AiAgentEconomy.Contracts.csproj" />
     <ProjectReference Include="..\AiAgentEconomy.Domain\AiAgentEconomy.Domain.csproj" />
   </ItemGroup>
 

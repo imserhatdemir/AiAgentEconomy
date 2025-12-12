@@ -1,23 +1,35 @@
+using AiAgentEconomy.Infrastructure.DependencyInjection;
+using AiAgentEconomy.Infrastructure.Persistence;
+using AiAgentEconomy.Infrastructure.Seed;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+
+// Swagger (Swashbuckle)
+builder.Services.AddSwaggerGen();
+
+// Infrastructure
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Seed on startup (dev-friendly)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AgentEconomyDbContext>();
+    await SeedData.ApplyAsync(db);
+}
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
