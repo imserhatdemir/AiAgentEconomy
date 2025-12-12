@@ -28,6 +28,7 @@ namespace AiAgentEconomy.Domain.Agents
 
         public Guid? PolicyId { get; set; }
         public AgentPolicy? Policy { get; set; }
+        public string? Description { get; set; }
 
         public bool CanSpend(decimal amount, DateTime utcNow, out string reason)
         {
