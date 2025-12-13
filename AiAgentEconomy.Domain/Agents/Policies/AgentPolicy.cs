@@ -31,58 +31,91 @@ namespace AiAgentEconomy.Domain.Agents.Policies
         public DateOnly? DailyWindowDate { get; set; }      // UTC day
         public decimal SpentInDailyWindow { get; set; }
 
+        public bool CanSpend(decimal amount, DateTime utcNow, out string reason)
+        {
+            // Backward-compatible wrapper for older callers (e.g., Agent.CanSpend)
+            return CanSpend(amount, utcNow, vendor: null, serviceCode: null, out reason);
+        }
         /// <summary>
         /// Determines whether the agent can spend the given amount
         /// according to policy rules.
         /// </summary>
         public bool CanSpend(
-            decimal amount,
-            DateTime utcNow,
-            string? vendor,
-            string? serviceCode,
-            out string reason)
+                            decimal amount,
+                            DateTime utcNow,
+                            string? vendor,
+                            string? serviceCode,
+                            out string reason)
         {
-            // First run existing checks (per-tx + daily)
-            if (!CanSpend(amount, utcNow, null, null, out reason))
-                return false;
+            reason = string.Empty;
 
-            // Vendor allowlist (optional)
-            if (!string.IsNullOrWhiteSpace(AllowedVendorsCsv) && !string.IsNullOrWhiteSpace(vendor))
+            if (!IsActive)
             {
+                reason = "POLICY_INACTIVE";
+                return false;
+            }
+
+            // Per-transaction limit
+            if (MaxPerTransaction > 0 && amount > MaxPerTransaction)
+            {
+                reason = "PER_TX_LIMIT_EXCEEDED";
+                return false;
+            }
+
+            // Daily window tracking
+            var today = DateOnly.FromDateTime(utcNow.Date);
+
+            if (DailyWindowDate is null || DailyWindowDate.Value != today)
+            {
+                DailyWindowDate = today;
+                SpentInDailyWindow = 0;
+            }
+
+            if (DailyLimit > 0 && SpentInDailyWindow + amount > DailyLimit)
+            {
+                reason = "DAILY_LIMIT_EXCEEDED";
+                return false;
+            }
+
+            // Vendor allowlist
+            vendor = string.IsNullOrWhiteSpace(vendor) ? null : vendor.Trim();
+            serviceCode = string.IsNullOrWhiteSpace(serviceCode) ? null : serviceCode.Trim();
+
+            if (!string.IsNullOrWhiteSpace(AllowedVendorsCsv))
+            {
+                if (vendor is null)
+                {
+                    reason = "VENDOR_REQUIRED";
+                    return false;
+                }
+
                 var allowedVendors = AllowedVendorsCsv
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                var ok = allowedVendors.Any(x => x.Equals(vendor, StringComparison.OrdinalIgnoreCase));
-                if (!ok)
+                if (!allowedVendors.Any(x => x.Equals(vendor, StringComparison.OrdinalIgnoreCase)))
                 {
                     reason = "VENDOR_NOT_ALLOWED";
                     return false;
                 }
             }
-            else if (!string.IsNullOrWhiteSpace(AllowedVendorsCsv) && string.IsNullOrWhiteSpace(vendor))
-            {
-                // Policy vendor restricted but request missing vendor info
-                reason = "VENDOR_REQUIRED";
-                return false;
-            }
 
-            // Service allowlist (optional)
-            if (!string.IsNullOrWhiteSpace(AllowedServicesCsv) && !string.IsNullOrWhiteSpace(serviceCode))
+            // Service allowlist
+            if (!string.IsNullOrWhiteSpace(AllowedServicesCsv))
             {
+                if (serviceCode is null)
+                {
+                    reason = "SERVICE_REQUIRED";
+                    return false;
+                }
+
                 var allowedServices = AllowedServicesCsv
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                var ok = allowedServices.Any(x => x.Equals(serviceCode, StringComparison.OrdinalIgnoreCase));
-                if (!ok)
+                if (!allowedServices.Any(x => x.Equals(serviceCode, StringComparison.OrdinalIgnoreCase)))
                 {
                     reason = "SERVICE_NOT_ALLOWED";
                     return false;
                 }
-            }
-            else if (!string.IsNullOrWhiteSpace(AllowedServicesCsv) && string.IsNullOrWhiteSpace(serviceCode))
-            {
-                reason = "SERVICE_REQUIRED";
-                return false;
             }
 
             reason = string.Empty;
