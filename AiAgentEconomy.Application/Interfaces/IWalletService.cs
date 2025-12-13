@@ -4,7 +4,7 @@ namespace AiAgentEconomy.Application.Interfaces
 {
     public interface IWalletService
     {
-        Task<WalletDto> CreateAsync(CreateWalletRequest request, CancellationToken ct = default);
-        Task<WalletDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
+        Task<WalletDto> CreateForAgentAsync(Guid agentId, CreateWalletForAgentRequest request, CancellationToken ct = default);
+        Task<WalletDto?> GetByAgentIdAsync(Guid agentId, CancellationToken ct = default);
     }
 }

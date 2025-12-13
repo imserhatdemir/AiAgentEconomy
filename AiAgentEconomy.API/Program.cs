@@ -1,3 +1,4 @@
+using AiAgentEconomy.API.Middleware;
 using AiAgentEconomy.Infrastructure.DependencyInjection;
 using AiAgentEconomy.Infrastructure.Persistence;
 using AiAgentEconomy.Infrastructure.Seed;
@@ -27,7 +28,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseGlobalExceptionHandling();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
