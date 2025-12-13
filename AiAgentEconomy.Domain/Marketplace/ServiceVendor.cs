@@ -15,10 +15,7 @@ namespace AiAgentEconomy.Domain.Marketplace
         // Vendor receives funds here
         public string WalletAddress { get; set; } = string.Empty;
 
-        // Simple pricing (MVP)
-        public decimal Price { get; set; }
-        public string Currency { get; set; } = "USDC";
-
         public bool IsActive { get; set; } = true;
+        public ICollection<MarketplaceService> Services { get; set; } = new List<MarketplaceService>();
     }
 }

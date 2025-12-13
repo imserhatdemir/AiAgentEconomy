@@ -23,6 +23,7 @@ namespace AiAgentEconomy.Infrastructure.DependencyInjection
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IAgentPolicyRepository, AgentPolicyRepository>();
             services.AddScoped<IAgentPolicyService, AgentPolicyService>();
+            services.AddScoped<IMarketplaceRepository, MarketplaceRepository>();
             return services;
         }
     }

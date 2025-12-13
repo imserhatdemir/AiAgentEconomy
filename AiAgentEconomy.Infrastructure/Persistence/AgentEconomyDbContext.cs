@@ -15,6 +15,7 @@ namespace AiAgentEconomy.Infrastructure.Persistence
         public DbSet<AgentPolicy> AgentPolicies => Set<AgentPolicy>();
         public DbSet<Wallet> Wallets => Set<Wallet>();
         public DbSet<ServiceVendor> ServiceVendors => Set<ServiceVendor>();
+        public DbSet<MarketplaceService> MarketplaceServices => Set<MarketplaceService>();
         public DbSet<Transaction> Transactions => Set<Transaction>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

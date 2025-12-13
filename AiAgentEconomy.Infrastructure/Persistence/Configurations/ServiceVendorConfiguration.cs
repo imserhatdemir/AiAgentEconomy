@@ -21,9 +21,6 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Configurations
 
             builder.Property(x => x.WalletAddress).HasMaxLength(128).IsRequired();
 
-            builder.Property(x => x.Price).HasColumnType("numeric(18,2)");
-            builder.Property(x => x.Currency).HasMaxLength(10).IsRequired();
-
             builder.Property(x => x.IsActive).IsRequired();
 
             builder.Property(x => x.CreatedAtUtc).IsRequired();
@@ -31,6 +28,10 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(x => x.Name);
             builder.HasIndex(x => x.IsActive);
+
+            builder.HasMany(x => x.Services)
+                   .WithOne(x => x.Vendor)
+                   .HasForeignKey(x => x.VendorId);
         }
     }
 }
