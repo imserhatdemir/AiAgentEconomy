@@ -16,7 +16,7 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Configurations
             builder.ToTable("wallets");
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.UserId).IsRequired();
+            builder.Property(x => x.AgentId).IsRequired();
 
             builder.Property(x => x.Chain).HasMaxLength(50).IsRequired();
             builder.Property(x => x.Address).HasMaxLength(128).IsRequired();
@@ -27,7 +27,7 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Configurations
             builder.Property(x => x.CreatedAtUtc).IsRequired();
             builder.Property(x => x.UpdatedAtUtc);
 
-            builder.HasIndex(x => x.UserId);
+            builder.HasIndex(x => x.AgentId);
             builder.HasIndex(x => x.Address).IsUnique();
         }
     }

@@ -1,7 +1,7 @@
 ﻿namespace AiAgentEconomy.Contracts.Wallets
 {
     public sealed record CreateWalletRequest(
-        Guid UserId,
+        Guid AgentId,
         string Address,
         string? Chain,
         string? Type

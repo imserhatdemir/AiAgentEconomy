@@ -31,21 +31,20 @@ namespace AiAgentEconomy.Application.Services
                 type = parsed;
             }
 
-            var wallet = new Wallet
-            {
-                Id = Guid.NewGuid(),
-                UserId = request.UserId,
-                Address = address,
-                Chain = chain,
-                Type = type,
-                IsActive = true,
-                CreatedAtUtc = DateTime.UtcNow
-            };
+            var wallet = new Wallet(request.AgentId,
+                                    chain,
+                                    address,
+                                    type)
+                         {
+                            Id = Guid.NewGuid(),
+                            IsActive = true,
+                            CreatedAtUtc = DateTime.UtcNow
+                         };
 
             await _repo.AddAsync(wallet, ct);
             await _repo.SaveChangesAsync(ct);
 
-            return new WalletDto(wallet.Id, wallet.UserId, wallet.Chain, wallet.Address, wallet.Type.ToString(), wallet.IsActive, wallet.CreatedAtUtc);
+            return new WalletDto(wallet.Id, wallet.AgentId, wallet.Chain, wallet.Address, wallet.Type.ToString(), wallet.IsActive, wallet.CreatedAtUtc);
         }
 
         public async Task<WalletDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -53,7 +52,7 @@ namespace AiAgentEconomy.Application.Services
             var w = await _repo.GetByIdAsync(id, ct);
             return w is null
                 ? null
-                : new WalletDto(w.Id, w.UserId, w.Chain, w.Address, w.Type.ToString(), w.IsActive, w.CreatedAtUtc);
+                : new WalletDto(w.Id, w.AgentId, w.Chain, w.Address, w.Type.ToString(), w.IsActive, w.CreatedAtUtc);
         }
     }
 }
