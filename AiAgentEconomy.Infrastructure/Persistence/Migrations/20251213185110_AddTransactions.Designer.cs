@@ -3,6 +3,7 @@ using System;
 using AiAgentEconomy.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AgentEconomyDbContext))]
-    partial class AgentEconomyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251213185110_AddTransactions")]
+    partial class AddTransactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,7 +79,7 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
                     b.ToTable("agents", (string)null);
                 });
 
-            modelBuilder.Entity("AiAgentEconomy.Domain.Agents.Policies.AgentPolicy", b =>
+            modelBuilder.Entity("AiAgentEconomy.Domain.Agents.AgentPolicy", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -86,42 +89,31 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AllowedServicesCsv")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("AllowedVendorsCsv")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Currency")
                         .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<decimal>("DailyLimit")
-                        .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<DateOnly?>("DailyWindowDate")
                         .HasColumnType("date");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
                     b.Property<decimal>("MaxPerTransaction")
-                        .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
                     b.Property<decimal>("SpentInDailyWindow")
-                        .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
@@ -129,12 +121,7 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AgentId")
-                        .IsUnique();
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("Name");
+                    b.HasIndex("AgentId");
 
                     b.ToTable("agent_policies", (string)null);
                 });
@@ -254,10 +241,6 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("ServiceCode")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -267,10 +250,6 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Vendor")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
                     b.Property<Guid>("WalletId")
                         .HasColumnType("uuid");
 
@@ -278,11 +257,7 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AgentId");
 
-                    b.HasIndex("ServiceCode");
-
                     b.HasIndex("Status");
-
-                    b.HasIndex("Vendor");
 
                     b.HasIndex("WalletId");
 
@@ -335,7 +310,7 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("AiAgentEconomy.Domain.Agents.Agent", b =>
                 {
-                    b.HasOne("AiAgentEconomy.Domain.Agents.Policies.AgentPolicy", "Policy")
+                    b.HasOne("AiAgentEconomy.Domain.Agents.AgentPolicy", "Policy")
                         .WithMany()
                         .HasForeignKey("PolicyId")
                         .OnDelete(DeleteBehavior.SetNull);

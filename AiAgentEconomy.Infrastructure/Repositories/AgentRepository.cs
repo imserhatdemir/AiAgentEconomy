@@ -25,6 +25,9 @@ namespace AiAgentEconomy.Infrastructure.Repositories
         public Task<List<Agent>> GetAllAsync(CancellationToken ct = default)
             => _db.Agents.AsNoTracking().OrderByDescending(x => x.CreatedAtUtc).ToListAsync(ct);
 
+        public Task<Agent?> GetByIdForUpdateAsync(Guid id, CancellationToken ct = default)
+            => _db.Agents.FirstOrDefaultAsync(x => x.Id == id, ct); // AsNoTracking yok
+
         public Task SaveChangesAsync(CancellationToken ct = default)
             => _db.SaveChangesAsync(ct);
     }

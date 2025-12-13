@@ -1,4 +1,5 @@
 ﻿using AiAgentEconomy.Domain.Agents;
+using AiAgentEconomy.Domain.Agents.Policies;
 using AiAgentEconomy.Domain.Marketplace;
 using AiAgentEconomy.Domain.Transactions;
 using AiAgentEconomy.Domain.Wallets;
@@ -14,7 +15,7 @@ namespace AiAgentEconomy.Infrastructure.Persistence
         public DbSet<AgentPolicy> AgentPolicies => Set<AgentPolicy>();
         public DbSet<Wallet> Wallets => Set<Wallet>();
         public DbSet<ServiceVendor> ServiceVendors => Set<ServiceVendor>();
-        public DbSet<AgentTransaction> AgentTransactions => Set<AgentTransaction>();
+        public DbSet<Transaction> Transactions => Set<Transaction>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

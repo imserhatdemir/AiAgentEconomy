@@ -1,10 +1,6 @@
-﻿using AiAgentEconomy.Domain.Common;
+﻿using AiAgentEconomy.Domain.Agents.Policies;
+using AiAgentEconomy.Domain.Common;
 using AiAgentEconomy.Domain.Wallets;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AiAgentEconomy.Domain.Agents
 {

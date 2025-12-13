@@ -18,8 +18,6 @@ namespace AiAgentEconomy.Domain.Transactions
 
         public string? BlockchainTxHash { get; set; }
 
-        public AgentTransactionStatus Status { get; set; } = AgentTransactionStatus.Pending;
-
         // Optional metadata for debugging/audit
         public string? MetadataJson { get; set; }
     }
