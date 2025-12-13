@@ -8,8 +8,8 @@ namespace AiAgentEconomy.Domain.Wallets
 {
     public enum WalletType
     {
+        NonCustodial = 0,
         Custodial = 1,
-        NonCustodial = 2,
-        SmartContract = 3
+        SmartContract = 2
     }
 }

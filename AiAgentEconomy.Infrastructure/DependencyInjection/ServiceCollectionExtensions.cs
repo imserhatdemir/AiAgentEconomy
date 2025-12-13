@@ -17,6 +17,8 @@ namespace AiAgentEconomy.Infrastructure.DependencyInjection
                 opt.UseNpgsql(connStr));
             services.AddScoped<IAgentRepository, AgentRepository>();
             services.AddScoped<IAgentService, AgentService>();
+            services.AddScoped<IWalletRepository, WalletRepository>();
+            services.AddScoped<IWalletService, WalletService>();
             return services;
         }
     }
