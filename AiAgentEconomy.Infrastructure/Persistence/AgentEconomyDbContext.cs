@@ -3,11 +3,6 @@ using AiAgentEconomy.Domain.Marketplace;
 using AiAgentEconomy.Domain.Transactions;
 using AiAgentEconomy.Domain.Wallets;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AiAgentEconomy.Infrastructure.Persistence
 {
