@@ -18,6 +18,8 @@ namespace AiAgentEconomy.Domain.Wallets
         public WalletType Type { get; set; } = WalletType.NonCustodial;
 
         public bool IsActive { get; set; } = true;
+
+        private Wallet() { }
         public Wallet(
         Guid agentId,
         string chain,
@@ -30,7 +32,6 @@ namespace AiAgentEconomy.Domain.Wallets
             Type = type;
             IsActive = true;
         }
-
         public void Deactivate()
         {
             IsActive = false;

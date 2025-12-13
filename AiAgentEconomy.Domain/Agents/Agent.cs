@@ -23,7 +23,6 @@ namespace AiAgentEconomy.Domain.Agents
         public decimal SpentThisMonth { get; set; }
 
         // Relationships
-        public Guid? WalletId { get; set; }
         public Wallet? Wallet { get; set; }
 
         public Guid? PolicyId { get; set; }

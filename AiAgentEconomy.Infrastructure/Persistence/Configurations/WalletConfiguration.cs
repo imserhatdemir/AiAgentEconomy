@@ -1,4 +1,5 @@
-﻿using AiAgentEconomy.Domain.Wallets;
+﻿using AiAgentEconomy.Domain.Agents;
+using AiAgentEconomy.Domain.Wallets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -26,7 +27,10 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Configurations
 
             builder.Property(x => x.CreatedAtUtc).IsRequired();
             builder.Property(x => x.UpdatedAtUtc);
-
+            builder.HasOne<Agent>()
+                                   .WithOne(a => a.Wallet)
+                                   .HasForeignKey<Wallet>(w => w.AgentId)
+                                   .OnDelete(DeleteBehavior.Cascade);
             builder.HasIndex(x => x.AgentId);
             builder.HasIndex(x => x.Address).IsUnique();
         }
