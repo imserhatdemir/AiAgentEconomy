@@ -12,30 +12,44 @@ namespace AiAgentEconomy.Infrastructure.Seed
 
             if (!await db.ServiceVendors.AnyAsync(ct))
             {
-                db.ServiceVendors.AddRange(
-                    new ServiceVendor
+                var vendorA = new ServiceVendor
+                {
+                    Name = "VendorA",
+                    WalletAddress = "0x0000000000000000000000000000000000000001",
+                    IsActive = true
+                };
+
+                var vendorB = new ServiceVendor
+                {
+                    Name = "VendorB",
+                    WalletAddress = "0x0000000000000000000000000000000000000002",
+                    IsActive = true
+                };
+
+                db.ServiceVendors.AddRange(vendorA, vendorB);
+                await db.SaveChangesAsync(ct);
+
+                db.MarketplaceServices.AddRange(
+                    new MarketplaceService
                     {
-                        Name = "DataAPI.io",
-                        Category = "Data API",
-                        WalletAddress = "0x0000000000000000000000000000000000000001",
+                        VendorId = vendorA.Id,
+                        ServiceCode = "Service1",
                         Price = 5m,
                         Currency = "USDC",
                         IsActive = true
                     },
-                    new ServiceVendor
+                    new MarketplaceService
                     {
-                        Name = "ComputeSaaS",
-                        Category = "SaaS",
-                        WalletAddress = "0x0000000000000000000000000000000000000002",
+                        VendorId = vendorA.Id,
+                        ServiceCode = "Service2",
                         Price = 12m,
                         Currency = "USDC",
                         IsActive = true
                     },
-                    new ServiceVendor
+                    new MarketplaceService
                     {
-                        Name = "MarketSignals",
-                        Category = "Analytics",
-                        WalletAddress = "0x0000000000000000000000000000000000000003",
+                        VendorId = vendorB.Id,
+                        ServiceCode = "ComputeBasic",
                         Price = 3m,
                         Currency = "USDC",
                         IsActive = true
@@ -44,6 +58,7 @@ namespace AiAgentEconomy.Infrastructure.Seed
 
                 await db.SaveChangesAsync(ct);
             }
+
         }
     }
 }

@@ -17,23 +17,26 @@ namespace AiAgentEconomy.Application.Services
         private readonly IWalletRepository _walletRepo;
         private readonly ITransactionRepository _txRepo;
         private readonly IAgentPolicyRepository _policyRepo;
+        private readonly IMarketplaceRepository _marketplaceRepo;
 
         public TransactionService(
             IAgentRepository agentRepo,
             IWalletRepository walletRepo,
             ITransactionRepository txRepo,
-            IAgentPolicyRepository policyRepo)
+            IAgentPolicyRepository policyRepo,
+            IMarketplaceRepository marketplaceRepo)
         {
             _agentRepo = agentRepo;
             _walletRepo = walletRepo;
             _txRepo = txRepo;
             _policyRepo = policyRepo;
+            _marketplaceRepo = marketplaceRepo;
         }
 
         public async Task<TransactionDto> CreateForAgentAsync(
-                                         Guid agentId,
-                                         CreateTransactionRequest request,
-                                         CancellationToken ct = default)
+        Guid agentId,
+        CreateTransactionRequest request,
+        CancellationToken ct = default)
         {
             // 1) Agent (tracked)
             var agent = await _agentRepo.GetByIdForUpdateAsync(agentId, ct);
@@ -58,20 +61,24 @@ namespace AiAgentEconomy.Application.Services
             var currency = string.IsNullOrWhiteSpace(request.Currency) ? "USDC" : request.Currency.Trim();
             var now = DateTime.UtcNow;
 
+            var vendor = string.IsNullOrWhiteSpace(request.Vendor) ? null : request.Vendor.Trim();
+            var serviceCode = string.IsNullOrWhiteSpace(request.ServiceCode) ? null : request.ServiceCode.Trim();
+
             // 4) Create tx (Pending -> will become Approved/Rejected)
             var tx = Transaction.Create(
-                                            agentId,
-                                            wallet.Id,
-                                            request.Amount,
-                                            txType,
-                                            currency,
-                                            request.Vendor,
-                                            request.ServiceCode
-                                        );
+                agentId,
+                wallet.Id,
+                request.Amount,
+                txType,
+                currency,
+                vendor,
+                serviceCode
+            );
 
-            // 5) Decision pipeline (Agent status + monthly budget + policy)
+            // 5) Decision pipeline
             string? rejectReason = null;
 
+            // 5.1 Agent gates
             if (agent.Status != AgentStatus.Active)
             {
                 rejectReason = "AGENT_NOT_ACTIVE";
@@ -82,33 +89,79 @@ namespace AiAgentEconomy.Application.Services
             }
             else
             {
-                // Policy (tracked)
-                var policy = await _policyRepo.GetByAgentIdForUpdateAsync(agentId, ct);
-
-                if (policy is not null)
+                // 5.2 Marketplace gates (only if vendor/service present OR txType is ServicePurchase)
+                // MVP choice: ServicePurchase için vendor+service zorunlu
+                if (txType == TransactionType.ServicePurchase)
                 {
-                    // Optional currency mismatch gate (recommended)
-                    if (!string.Equals(policy.Currency, currency, StringComparison.OrdinalIgnoreCase))
+                    if (string.IsNullOrWhiteSpace(vendor))
+                        rejectReason = "VENDOR_REQUIRED";
+                    else if (string.IsNullOrWhiteSpace(serviceCode))
+                        rejectReason = "SERVICE_REQUIRED";
+                }
+
+                if (rejectReason is null && (!string.IsNullOrWhiteSpace(vendor) || !string.IsNullOrWhiteSpace(serviceCode)))
+                {
+                    if (string.IsNullOrWhiteSpace(vendor))
+                        rejectReason = "VENDOR_REQUIRED";
+                    else if (string.IsNullOrWhiteSpace(serviceCode))
+                        rejectReason = "SERVICE_REQUIRED";
+                    else
                     {
-                        rejectReason = "POLICY_CURRENCY_MISMATCH";
+                        var vendorEntity = await _marketplaceRepo.GetVendorByNameAsync(vendor, ct);
+                        if (vendorEntity is null)
+                            rejectReason = "MARKETPLACE_VENDOR_NOT_FOUND";
+                        else if (!vendorEntity.IsActive)
+                            rejectReason = "MARKETPLACE_VENDOR_INACTIVE";
+                        else
+                        {
+                            var svc = await _marketplaceRepo.GetServiceAsync(vendorEntity.Id, serviceCode, ct);
+                            if (svc is null)
+                                rejectReason = "MARKETPLACE_SERVICE_NOT_FOUND";
+                            else if (!svc.IsActive)
+                                rejectReason = "MARKETPLACE_SERVICE_INACTIVE";
+                            else if (!string.Equals(svc.Currency, currency, StringComparison.OrdinalIgnoreCase))
+                                rejectReason = "MARKETPLACE_CURRENCY_MISMATCH";
+
+                            // Opsiyonel fiyat doğrulama (istersen aç)
+                            // else if (svc.Price != request.Amount)
+                            //     rejectReason = "MARKETPLACE_PRICE_MISMATCH";
+                        }
                     }
-                    else if (!policy.CanSpend(request.Amount, now, request.Vendor, request.ServiceCode, out var policyReason))
+                }
+
+                // 5.3 Policy gates
+                if (rejectReason is null)
+                {
+                    var policy = await _policyRepo.GetByAgentIdForUpdateAsync(agentId, ct);
+
+                    if (policy is not null)
                     {
-                        rejectReason = policyReason;
+                        if (!policy.IsActive)
+                        {
+                            rejectReason = "POLICY_INACTIVE";
+                        }
+                        else if (!string.Equals(policy.Currency, currency, StringComparison.OrdinalIgnoreCase))
+                        {
+                            rejectReason = "POLICY_CURRENCY_MISMATCH";
+                        }
+                        else if (!policy.CanSpend(request.Amount, now, vendor, serviceCode, out var policyReason))
+                        {
+                            rejectReason = policyReason;
+                        }
+                        else
+                        {
+                            // Approved: reserve budgets
+                            tx.Approve();
+                            agent.AddSpent(request.Amount);
+                            policy.AddDailySpend(request.Amount, now);
+                        }
                     }
                     else
                     {
-                        // Approved: reserve budgets
+                        // No policy => monthly budget only (already checked)
                         tx.Approve();
                         agent.AddSpent(request.Amount);
-                        policy.AddDailySpend(request.Amount, now);
                     }
-                }
-                else
-                {
-                    // No policy => monthly budget only
-                    tx.Approve();
-                    agent.AddSpent(request.Amount);
                 }
             }
 
@@ -121,7 +174,6 @@ namespace AiAgentEconomy.Application.Services
 
             return ToDto(tx);
         }
-
         public async Task<IReadOnlyList<TransactionDto>> GetByAgentAsync(Guid agentId, int take = 50, CancellationToken ct = default)
         {
             var list = await _txRepo.GetByAgentIdAsync(agentId, take, ct);
