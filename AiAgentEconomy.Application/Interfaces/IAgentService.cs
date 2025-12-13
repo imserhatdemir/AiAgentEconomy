@@ -12,5 +12,7 @@ namespace AiAgentEconomy.Application.Interfaces
         Task<AgentDto> CreateAsync(CreateAgentRequest request, CancellationToken ct = default);
         Task<AgentDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
         Task<IReadOnlyList<AgentDto>> GetAllAsync(CancellationToken ct = default);
+        Task UpdateMonthlyBudgetAsync(Guid agentId, UpdateAgentBudgetRequest request, CancellationToken ct = default);
+        Task ResetSpentThisMonthAsync(Guid agentId, ResetAgentSpentRequest request, CancellationToken ct = default);
     }
 }

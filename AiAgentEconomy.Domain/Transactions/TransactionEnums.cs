@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace AiAgentEconomy.Domain.Transactions
 {
-    public enum AgentTransactionStatus
+    public enum TransactionStatus
     {
-        Pending = 1,
-        OnChainSubmitted = 2,
-        Confirmed = 3,
-        Failed = 4,
-        Cancelled = 5
+        Pending = 1,        // Created, waiting for execution
+        Approved = 2,       // Passed policy & budget
+        Rejected = 3,       // Blocked by rules
+        OnChainSent = 4,    // Sent to blockchain
+        Confirmed = 5,      // Confirmed on-chain
+        Failed = 6          // Execution failed
     }
 }

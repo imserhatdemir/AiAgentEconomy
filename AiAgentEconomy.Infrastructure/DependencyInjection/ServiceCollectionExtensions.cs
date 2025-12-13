@@ -19,6 +19,10 @@ namespace AiAgentEconomy.Infrastructure.DependencyInjection
             services.AddScoped<IAgentService, AgentService>();
             services.AddScoped<IWalletRepository, WalletRepository>();
             services.AddScoped<IWalletService, WalletService>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<ITransactionService, TransactionService>();
+            services.AddScoped<IAgentPolicyRepository, AgentPolicyRepository>();
+            services.AddScoped<IAgentPolicyService, AgentPolicyService>();
             return services;
         }
     }

@@ -35,9 +35,9 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Configurations
                    .WithOne()
                    .HasForeignKey<Wallet>(w => w.AgentId);
 
-            builder.HasOne(x => x.Policy)
+            builder.HasOne(a => a.Policy)
                    .WithMany()
-                   .HasForeignKey(x => x.PolicyId)
+                   .HasForeignKey(a => a.PolicyId)
                    .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasIndex(x => x.UserId);

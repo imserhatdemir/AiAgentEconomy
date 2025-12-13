@@ -25,15 +25,12 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Configurations
 
             builder.Property(x => x.BlockchainTxHash).HasMaxLength(128);
 
-            builder.Property(x => x.Status).IsRequired();
-
             builder.Property(x => x.MetadataJson).HasColumnType("text");
 
             builder.Property(x => x.CreatedAtUtc).IsRequired();
             builder.Property(x => x.UpdatedAtUtc);
 
             builder.HasIndex(x => x.AgentId);
-            builder.HasIndex(x => x.Status);
         }
     }
 }

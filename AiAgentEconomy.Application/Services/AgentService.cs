@@ -1,4 +1,5 @@
-﻿using AiAgentEconomy.Application.Interfaces;
+﻿using AiAgentEconomy.Application.Exceptions;
+using AiAgentEconomy.Application.Interfaces;
 using AiAgentEconomy.Contracts.Agents;
 using AiAgentEconomy.Domain.Agents;
 using System;
@@ -44,6 +45,33 @@ namespace AiAgentEconomy.Application.Services
         {
             var list = await _repo.GetAllAsync(ct);
             return list.Select(x => new AgentDto(x.Id, x.Name, x.Description, x.CreatedAtUtc)).ToList();
+        }
+
+        public async Task UpdateMonthlyBudgetAsync(Guid agentId, UpdateAgentBudgetRequest request, CancellationToken ct = default)
+        {
+            if (request.MonthlyBudget <= 0)
+                throw new ValidationException("MonthlyBudget must be greater than zero.");
+
+            var agent = await _repo.GetByIdForUpdateAsync(agentId, ct); // aşağıda açıklayacağım
+            if (agent is null)
+                throw new NotFoundException("Agent not found.");
+
+            agent.MonthlyBudget = request.MonthlyBudget;
+            agent.UpdatedAtUtc = DateTime.UtcNow;
+
+            await _repo.SaveChangesAsync(ct);
+        }
+
+        public async Task ResetSpentThisMonthAsync(Guid agentId, ResetAgentSpentRequest request, CancellationToken ct = default)
+        {
+            var agent = await _repo.GetByIdForUpdateAsync(agentId, ct);
+            if (agent is null)
+                throw new NotFoundException("Agent not found.");
+
+            agent.SpentThisMonth = request.SpentThisMonth ?? 0m;
+            agent.UpdatedAtUtc = DateTime.UtcNow;
+
+            await _repo.SaveChangesAsync(ct);
         }
     }
 }

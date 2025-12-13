@@ -3,6 +3,7 @@ using System;
 using AiAgentEconomy.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AgentEconomyDbContext))]
-    partial class AgentEconomyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251213202746_AddAgentPolicies")]
+    partial class AddAgentPolicies
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -254,10 +257,6 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("ServiceCode")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -267,10 +266,6 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Vendor")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
                     b.Property<Guid>("WalletId")
                         .HasColumnType("uuid");
 
@@ -278,11 +273,7 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AgentId");
 
-                    b.HasIndex("ServiceCode");
-
                     b.HasIndex("Status");
-
-                    b.HasIndex("Vendor");
 
                     b.HasIndex("WalletId");
 

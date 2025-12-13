@@ -12,6 +12,7 @@ namespace AiAgentEconomy.Application.Interfaces
         Task AddAsync(Agent agent, CancellationToken ct = default);
         Task<Agent?> GetByIdAsync(Guid id, CancellationToken ct = default);
         Task<List<Agent>> GetAllAsync(CancellationToken ct = default);
+        Task<Agent?> GetByIdForUpdateAsync(Guid id, CancellationToken ct = default);
         Task SaveChangesAsync(CancellationToken ct = default);
     }
 }
