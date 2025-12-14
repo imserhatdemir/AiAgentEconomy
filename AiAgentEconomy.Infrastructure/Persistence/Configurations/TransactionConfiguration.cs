@@ -41,6 +41,15 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Configurations
             builder.Property(x => x.UpdatedAtUtc);
             builder.Property(x => x.Vendor).HasMaxLength(128);
             builder.Property(x => x.ServiceCode).HasMaxLength(128);
+            builder.Property(x => x.VendorId).IsRequired(false);
+            builder.Property(x => x.MarketplaceServiceId).IsRequired(false);
+            builder.Property(x => x.UnitPrice)
+                   .HasColumnType("numeric(18,2)")
+                   .IsRequired(false);
+
+            builder.Property(x => x.UnitPriceCurrency)
+                   .HasMaxLength(16)
+                   .IsRequired(false);
             // Query patterns:
             // - List transactions by AgentId
             // - List transactions by WalletId
@@ -50,6 +59,8 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Configurations
             builder.HasIndex(x => x.Status);
             builder.HasIndex(x => x.Vendor);
             builder.HasIndex(x => x.ServiceCode);
+            builder.HasIndex(x => x.VendorId);
+            builder.HasIndex(x => x.MarketplaceServiceId);
             // Optional composite index for runtime polling
             builder.HasIndex(x => new { x.Status, x.CreatedAtUtc });
         }

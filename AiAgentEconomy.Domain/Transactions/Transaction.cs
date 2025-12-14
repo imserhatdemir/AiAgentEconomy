@@ -21,6 +21,10 @@ namespace AiAgentEconomy.Domain.Transactions
         public string? RejectionReason { get; private set; }
         public string? Vendor { get; private set; }
         public string? ServiceCode { get; private set; }
+        public Guid? VendorId { get; private set; }
+        public Guid? MarketplaceServiceId { get; private set; }
+        public decimal? UnitPrice { get; private set; }   // marketplace price snapshot
+        public string? UnitPriceCurrency { get; private set; } // snapshot currency (optional but recommended)
         private Transaction() { } // EF Core
 
         private Transaction(
@@ -85,6 +89,15 @@ namespace AiAgentEconomy.Domain.Transactions
         {
             Status = TransactionStatus.Failed;
             RejectionReason = reason;
+            UpdatedAtUtc = DateTime.UtcNow;
+        }
+
+        public void AttachMarketplace(Guid vendorId, Guid marketplaceServiceId, decimal unitPrice, string currency)
+        {
+            VendorId = vendorId;
+            MarketplaceServiceId = marketplaceServiceId;
+            UnitPrice = unitPrice;
+            UnitPriceCurrency = currency;
             UpdatedAtUtc = DateTime.UtcNow;
         }
     }
