@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AgentEconomyDbContext))]
-    [Migration("20251213220855_MarketplaceServiceRegistry")]
+    [Migration("20251214112128_MarketplaceServiceRegistry")]
     partial class MarketplaceServiceRegistry
     {
         /// <inheritdoc />
@@ -158,6 +158,9 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
 
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)

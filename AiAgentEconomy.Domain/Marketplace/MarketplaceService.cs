@@ -17,5 +17,6 @@ namespace AiAgentEconomy.Domain.Marketplace
         public string Currency { get; set; } = "USDC";
 
         public bool IsActive { get; set; } = true;
+        public string? Name { get; set; }
     }
 }
