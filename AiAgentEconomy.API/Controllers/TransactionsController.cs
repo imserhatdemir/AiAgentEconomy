@@ -8,39 +8,31 @@ namespace AiAgentEconomy.API.Controllers
     [ApiController]
     public class TransactionsController : ControllerBase
     {
-        private readonly ITransactionService _txService;
+        private readonly ITransactionLifecycleService _lifecycle;
 
-        public TransactionsController(ITransactionService txService)
+        public TransactionsController(ITransactionLifecycleService lifecycle)
         {
-            _txService = txService;
+            _lifecycle = lifecycle;
         }
 
-        [HttpPost("{transactionId:guid}/submit")]
-        public async Task<ActionResult<TransactionDto>> Submit(
-            Guid transactionId,
-            [FromBody] SubmitTransactionRequest request,
-            CancellationToken ct)
+        [HttpPost("{id:guid}/submit")]
+        public async Task<ActionResult<TransactionDto>> Submit(Guid id, [FromBody] SubmitTransactionRequest request, CancellationToken ct)
         {
-            var result = await _txService.SubmitAsync(transactionId, request, ct);
+            var result = await _lifecycle.SubmitAsync(id, request, ct);
             return Ok(result);
         }
 
-        [HttpPost("{transactionId:guid}/settle")]
-        public async Task<ActionResult<TransactionDto>> Settle(
-            Guid transactionId,
-            CancellationToken ct)
+        [HttpPost("{id:guid}/settle")]
+        public async Task<ActionResult<TransactionDto>> Settle(Guid id, CancellationToken ct)
         {
-            var result = await _txService.SettleAsync(transactionId, ct);
+            var result = await _lifecycle.SettleAsync(id, ct);
             return Ok(result);
         }
 
-        [HttpPost("{transactionId:guid}/fail")]
-        public async Task<ActionResult<TransactionDto>> Fail(
-            Guid transactionId,
-            [FromBody] FailTransactionRequest request,
-            CancellationToken ct)
+        [HttpPost("{id:guid}/fail")]
+        public async Task<ActionResult<TransactionDto>> Fail(Guid id, [FromBody] FailTransactionRequest request, CancellationToken ct)
         {
-            var result = await _txService.FailAsync(transactionId, request, ct);
+            var result = await _lifecycle.FailAsync(id, request.Reason, ct);
             return Ok(result);
         }
     }

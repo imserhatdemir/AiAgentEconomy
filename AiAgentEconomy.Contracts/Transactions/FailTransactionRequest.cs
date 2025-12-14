@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace AiAgentEconomy.Contracts.Transactions
 {
-    public sealed record FailTransactionRequest(
-        string Reason
-    );
+    public sealed class FailTransactionRequest
+    {
+        public string? Reason { get; set; } // optional, default ONCHAIN_FAILED
+    }
 }
