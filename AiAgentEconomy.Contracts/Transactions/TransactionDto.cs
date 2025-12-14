@@ -17,6 +17,22 @@ namespace AiAgentEconomy.Contracts.Transactions
         string? RejectionReason,
         string? Vendor,
         string? ServiceCode,
-        DateTime CreatedAtUtc
+        DateTime CreatedAtUtc,
+
+        // Marketplace snapshot
+        Guid? VendorId,
+        Guid? MarketplaceServiceId,
+        decimal? UnitPrice,
+        string? UnitPriceCurrency,
+
+        // On-chain metadata
+        string? Chain,
+        string? Network,
+        string? BlockchainTxHash,
+        string? ExplorerUrl,
+        DateTime? SubmittedAtUtc,
+        DateTime? SettledAtUtc,
+        DateTime? FailedAtUtc,
+        string? FailureReason
     );
 }

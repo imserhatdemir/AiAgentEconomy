@@ -1,9 +1,4 @@
 ﻿using AiAgentEconomy.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AiAgentEconomy.Domain.Transactions
 {
@@ -25,6 +20,15 @@ namespace AiAgentEconomy.Domain.Transactions
         public Guid? MarketplaceServiceId { get; private set; }
         public decimal? UnitPrice { get; private set; }   // marketplace price snapshot
         public string? UnitPriceCurrency { get; private set; } // snapshot currency (optional but recommended)
+        public string? Chain { get; private set; }              // e.g. "Arbitrum"
+        public string? Network { get; private set; }            // e.g. "sepolia", "arbitrum-sepolia"
+        public string? BlockchainTxHash { get; private set; }   // 0x...
+        public string? ExplorerUrl { get; private set; }        // computed or stored snapshot
+
+        public DateTime? SubmittedAtUtc { get; private set; }
+        public DateTime? SettledAtUtc { get; private set; }
+        public DateTime? FailedAtUtc { get; private set; }
+        public string? FailureReason { get; private set; }
         private Transaction() { } // EF Core
 
         private Transaction(
@@ -62,42 +66,71 @@ namespace AiAgentEconomy.Domain.Transactions
 
         public void Approve()
         {
+            if (Status != TransactionStatus.Pending)
+                throw new InvalidOperationException("Only Pending transactions can be approved.");
+
             Status = TransactionStatus.Approved;
             UpdatedAtUtc = DateTime.UtcNow;
         }
-
         public void Reject(string reason)
         {
+            if (Status != TransactionStatus.Pending)
+                throw new InvalidOperationException("Only Pending transactions can be rejected.");
+
             Status = TransactionStatus.Rejected;
-            RejectionReason = reason;
+            RejectionReason = string.IsNullOrWhiteSpace(reason) ? "REJECTED" : reason.Trim();
             UpdatedAtUtc = DateTime.UtcNow;
         }
-
-        public void MarkOnChainSent()
-        {
-            Status = TransactionStatus.OnChainSent;
-            UpdatedAtUtc = DateTime.UtcNow;
-        }
-
-        public void Confirm()
-        {
-            Status = TransactionStatus.Confirmed;
-            UpdatedAtUtc = DateTime.UtcNow;
-        }
-
         public void Fail(string reason)
         {
-            Status = TransactionStatus.Failed;
-            RejectionReason = reason;
-            UpdatedAtUtc = DateTime.UtcNow;
+            // obsolete: use MarkFailed
+            MarkFailed(reason);
         }
-
         public void AttachMarketplace(Guid vendorId, Guid marketplaceServiceId, decimal unitPrice, string currency)
         {
             VendorId = vendorId;
             MarketplaceServiceId = marketplaceServiceId;
             UnitPrice = unitPrice;
             UnitPriceCurrency = currency;
+            UpdatedAtUtc = DateTime.UtcNow;
+        }
+
+        public void MarkSubmitted(string chain, string network, string txHash, string? explorerUrl = null)
+        {
+            if (Status != TransactionStatus.Approved)
+                throw new InvalidOperationException("Only Approved transactions can be submitted on-chain.");
+
+            if (string.IsNullOrWhiteSpace(txHash))
+                throw new ArgumentException("txHash is required.", nameof(txHash));
+
+            Chain = chain;
+            Network = network;
+            BlockchainTxHash = txHash.Trim();
+            ExplorerUrl = explorerUrl;
+
+            SubmittedAtUtc = DateTime.UtcNow;
+            Status = TransactionStatus.Submitted;
+            UpdatedAtUtc = DateTime.UtcNow;
+        }
+
+        public void MarkSettled()
+        {
+            if (Status != TransactionStatus.Submitted)
+                throw new InvalidOperationException("Only Submitted transactions can be settled.");
+
+            SettledAtUtc = DateTime.UtcNow;
+            Status = TransactionStatus.Settled;
+            UpdatedAtUtc = DateTime.UtcNow;
+        }
+
+        public void MarkFailed(string reason)
+        {
+            if (Status != TransactionStatus.Submitted)
+                throw new InvalidOperationException("Only Submitted transactions can be failed.");
+
+            FailureReason = string.IsNullOrWhiteSpace(reason) ? "ONCHAIN_FAILED" : reason.Trim();
+            FailedAtUtc = DateTime.UtcNow;
+            Status = TransactionStatus.Failed;
             UpdatedAtUtc = DateTime.UtcNow;
         }
     }
