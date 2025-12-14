@@ -216,18 +216,77 @@ namespace AiAgentEconomy.Application.Services
         }
 
         private static TransactionDto ToDto(Domain.Transactions.Transaction tx)
-            => new(
-                tx.Id,
-                tx.AgentId,
-                tx.WalletId,
-                tx.Amount,
-                tx.Currency,
-                tx.Type.ToString(),
-                tx.Status.ToString(),
-                tx.RejectionReason,
-                tx.Vendor,
-                tx.ServiceCode,
-                tx.CreatedAtUtc
+        => new(
+            tx.Id,
+            tx.AgentId,
+            tx.WalletId,
+            tx.Amount,
+            tx.Currency,
+            tx.Type.ToString(),
+            tx.Status.ToString(),
+            tx.RejectionReason,
+            tx.Vendor,
+            tx.ServiceCode,
+            tx.CreatedAtUtc,
+
+            // Marketplace snapshot
+            tx.VendorId,
+            tx.MarketplaceServiceId,
+            tx.UnitPrice,
+            tx.UnitPriceCurrency,
+
+            // On-chain metadata
+            tx.Chain,
+            tx.Network,
+            tx.BlockchainTxHash,
+            tx.ExplorerUrl,
+            tx.SubmittedAtUtc,
+            tx.SettledAtUtc,
+            tx.FailedAtUtc,
+            tx.FailureReason
+        );
+
+        public async Task<TransactionDto> SubmitAsync(Guid transactionId, SubmitTransactionRequest request, CancellationToken ct = default)
+        {
+            var tx = await _txRepo.GetByIdForUpdateAsync(transactionId, ct);
+            if (tx is null)
+                throw new NotFoundException("Transaction not found.");
+
+            // Domain guard: only Approved -> Submitted
+            tx.MarkSubmitted(
+                chain: request.Chain?.Trim() ?? "Arbitrum",
+                network: request.Network?.Trim() ?? "arbitrum-sepolia",
+                txHash: request.TxHash,
+                explorerUrl: string.IsNullOrWhiteSpace(request.ExplorerUrl) ? null : request.ExplorerUrl.Trim()
             );
+
+            await _txRepo.SaveChangesAsync(ct);
+            return ToDto(tx);
+        }
+
+        public async Task<TransactionDto> SettleAsync(Guid transactionId, CancellationToken ct = default)
+        {
+            var tx = await _txRepo.GetByIdForUpdateAsync(transactionId, ct);
+            if (tx is null)
+                throw new NotFoundException("Transaction not found.");
+
+            // Domain guard: only Submitted -> Settled
+            tx.MarkSettled();
+
+            await _txRepo.SaveChangesAsync(ct);
+            return ToDto(tx);
+        }
+
+        public async Task<TransactionDto> FailAsync(Guid transactionId, FailTransactionRequest request, CancellationToken ct = default)
+        {
+            var tx = await _txRepo.GetByIdForUpdateAsync(transactionId, ct);
+            if (tx is null)
+                throw new NotFoundException("Transaction not found.");
+
+            tx.MarkFailed(request.Reason);
+
+            await _txRepo.SaveChangesAsync(ct);
+            return ToDto(tx);
+        }
     }
 }

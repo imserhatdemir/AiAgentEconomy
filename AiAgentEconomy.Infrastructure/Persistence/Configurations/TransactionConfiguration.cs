@@ -50,6 +50,16 @@ namespace AiAgentEconomy.Infrastructure.Persistence.Configurations
             builder.Property(x => x.UnitPriceCurrency)
                    .HasMaxLength(16)
                    .IsRequired(false);
+            builder.Property(x => x.Chain).HasMaxLength(64);
+            builder.Property(x => x.Network).HasMaxLength(64);
+            builder.Property(x => x.BlockchainTxHash).HasMaxLength(128);
+            builder.Property(x => x.ExplorerUrl).HasMaxLength(512);
+
+            builder.Property(x => x.FailureReason).HasMaxLength(256);
+
+            builder.HasIndex(x => x.BlockchainTxHash);
+            builder.HasIndex(x => x.Status);
+
             // Query patterns:
             // - List transactions by AgentId
             // - List transactions by WalletId

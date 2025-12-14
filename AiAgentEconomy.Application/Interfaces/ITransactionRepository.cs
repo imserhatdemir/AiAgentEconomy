@@ -8,5 +8,6 @@ namespace AiAgentEconomy.Application.Interfaces
         Task<Transaction?> GetByIdAsync(Guid id, CancellationToken ct = default);
         Task<IReadOnlyList<Transaction>> GetByAgentIdAsync(Guid agentId, int take = 50, CancellationToken ct = default);
         Task SaveChangesAsync(CancellationToken ct = default);
+        Task<Transaction?> GetByIdForUpdateAsync(Guid id, CancellationToken ct = default);
     }
 }

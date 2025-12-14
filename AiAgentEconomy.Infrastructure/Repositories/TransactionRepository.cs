@@ -25,5 +25,7 @@ namespace AiAgentEconomy.Infrastructure.Repositories
 
         public Task SaveChangesAsync(CancellationToken ct = default)
             => _db.SaveChangesAsync(ct);
+        public Task<Transaction?> GetByIdForUpdateAsync(Guid id, CancellationToken ct = default)
+            => _db.Transactions.FirstOrDefaultAsync(x => x.Id == id, ct);
     }
 }
