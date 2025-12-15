@@ -18,19 +18,22 @@ namespace AiAgentEconomy.Application.Services
         private readonly ITransactionRepository _txRepo;
         private readonly IAgentPolicyRepository _policyRepo;
         private readonly IMarketplaceRepository _marketplaceRepo;
+        private readonly IBlockchainTransactionSender _blockchainSender;
 
         public TransactionService(
             IAgentRepository agentRepo,
             IWalletRepository walletRepo,
             ITransactionRepository txRepo,
             IAgentPolicyRepository policyRepo,
-            IMarketplaceRepository marketplaceRepo)
+            IMarketplaceRepository marketplaceRepo,
+            IBlockchainTransactionSender blockchainSender)
         {
             _agentRepo = agentRepo;
             _walletRepo = walletRepo;
             _txRepo = txRepo;
             _policyRepo = policyRepo;
             _marketplaceRepo = marketplaceRepo;
+            _blockchainSender = blockchainSender;
         }
 
         public async Task<TransactionDto> CreateForAgentAsync(
@@ -217,19 +220,23 @@ namespace AiAgentEconomy.Application.Services
 
         private static TransactionDto ToDto(Domain.Transactions.Transaction tx)
         => new(
+            // Identity
             tx.Id,
             tx.AgentId,
             tx.WalletId,
+
+            // Core
             tx.Amount,
             tx.Currency,
             tx.Type.ToString(),
             tx.Status.ToString(),
             tx.RejectionReason,
+
+            // Marketplace (request-level)
             tx.Vendor,
             tx.ServiceCode,
-            tx.CreatedAtUtc,
 
-            // Marketplace snapshot
+            // Marketplace snapshot (resolved)
             tx.VendorId,
             tx.MarketplaceServiceId,
             tx.UnitPrice,
@@ -240,29 +247,74 @@ namespace AiAgentEconomy.Application.Services
             tx.Network,
             tx.BlockchainTxHash,
             tx.ExplorerUrl,
+
+            // Timestamps
+            tx.CreatedAtUtc,
             tx.SubmittedAtUtc,
             tx.SettledAtUtc,
             tx.FailedAtUtc,
             tx.FailureReason
         );
 
-        public async Task<TransactionDto> SubmitAsync(Guid transactionId, SubmitTransactionRequest request, CancellationToken ct = default)
+
+        public async Task<TransactionDto> SubmitAsync(
+                                            Guid transactionId,
+                                            SubmitTransactionRequest request,
+                                            CancellationToken ct = default)
         {
             var tx = await _txRepo.GetByIdForUpdateAsync(transactionId, ct);
             if (tx is null)
                 throw new NotFoundException("Transaction not found.");
 
-            // Domain guard: only Approved -> Submitted
+            // 1) Status guard (application-level → 409)
+            if (tx.Status != TransactionStatus.Approved)
+                throw new ConflictException("Only Approved transactions can be submitted on-chain.");
+
+            // 2) Wallet
+            var wallet = await _walletRepo.GetByIdAsync(tx.WalletId, ct);
+            if (wallet is null)
+                throw new NotFoundException("Wallet not found.");
+
+            if (!wallet.IsActive)
+                throw new ConflictException("Wallet is inactive.");
+
+            // 3) Normalize chain / network
+            var chain = string.IsNullOrWhiteSpace(request.Chain)
+                ? "Arbitrum"
+                : request.Chain.Trim();
+
+            var network = string.IsNullOrWhiteSpace(request.Network)
+                ? "arbitrum-sepolia"
+                : request.Network.Trim();
+
+            // 4) Submit to blockchain (FAKE provider for now)
+            var submitResult = await _blockchainSender.SubmitAsync(
+                new BlockchainSubmitCommand(
+                    Chain: chain,
+                    Network: network,
+                    FromAddress: wallet.Address,
+                    ToAddress: tx.Vendor ?? "MARKETPLACE",
+                    Amount: tx.Amount,
+                    Currency: tx.Currency,
+                    Vendor: tx.Vendor,
+                    ServiceCode: tx.ServiceCode
+                ),
+                ct
+            );
+
+            // 5) Domain transition
             tx.MarkSubmitted(
-                chain: request.Chain?.Trim() ?? "Arbitrum",
-                network: request.Network?.Trim() ?? "arbitrum-sepolia",
-                txHash: request.TxHash,
-                explorerUrl: string.IsNullOrWhiteSpace(request.ExplorerUrl) ? null : request.ExplorerUrl.Trim()
+                chain: chain,
+                network: network,
+                txHash: submitResult.TxHash,
+                explorerUrl: submitResult.ExplorerUrl ?? request.ExplorerUrl
             );
 
             await _txRepo.SaveChangesAsync(ct);
             return ToDto(tx);
         }
+
+
 
         public async Task<TransactionDto> SettleAsync(Guid transactionId, CancellationToken ct = default)
         {

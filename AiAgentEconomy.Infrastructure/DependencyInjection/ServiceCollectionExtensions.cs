@@ -1,5 +1,6 @@
 ﻿using AiAgentEconomy.Application.Interfaces;
 using AiAgentEconomy.Application.Services;
+using AiAgentEconomy.Infrastructure.Blockchain;
 using AiAgentEconomy.Infrastructure.Persistence;
 using AiAgentEconomy.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,9 @@ namespace AiAgentEconomy.Infrastructure.DependencyInjection
             services.AddScoped<IAgentPolicyService, AgentPolicyService>();
             services.AddScoped<IMarketplaceRepository, MarketplaceRepository>();
             services.AddScoped<IMarketplaceReadService, MarketplaceReadService>();
+            services.AddScoped<IBlockchainTransactionSender, FakeBlockchainTransactionSender>();
+            services.AddScoped<IBlockchainTransactionVerifier, FakeBlockchainTransactionVerifier>();
+            services.AddScoped<ITransactionLifecycleService, TransactionLifecycleService>();
             return services;
         }
     }
