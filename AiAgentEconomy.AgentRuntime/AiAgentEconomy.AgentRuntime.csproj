@@ -17,4 +17,12 @@
     <ProjectReference Include="..\AiAgentEconomy.Domain\AiAgentEconomy.Domain.csproj" />
     <ProjectReference Include="..\AiAgentEconomy.Infrastructure\AiAgentEconomy.Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Messaging\Contracts\" />
+    <Folder Include="Messaging\Consumers\" />
+    <Folder Include="Messaging\Publishers\" />
+    <Folder Include="Orchestration\Steps\" />
+    <Folder Include="Orchestration\Pipelines\" />
+  </ItemGroup>
 </Project>

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AiAgentEconomy.AgentRuntime.DependencyInjection
+namespace AiAgentEconomy.AgentRuntime.Tools
 {
-    internal class ServiceCollectionExtensions
+    internal class IToolRouter
     {
     }
 }

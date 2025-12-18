@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AiAgentEconomy.AgentRuntime.Skills
+namespace AiAgentEconomy.AgentRuntime.Hosting
 {
-    internal class AgentSkills
+    internal class DependencyInjection
     {
     }
 }
