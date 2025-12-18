@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AiAgentEconomy.AgentRuntime.Orchestration
+namespace AiAgentEconomy.AgentRuntime.Observability
 {
-    internal class SemanticKernelAgentExecutor
+    internal class AuditWriter
     {
     }
 }

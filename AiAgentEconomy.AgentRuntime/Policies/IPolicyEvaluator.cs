@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AiAgentEconomy.AgentRuntime.HostedServices
+namespace AiAgentEconomy.AgentRuntime.Policies
 {
-    internal class AgentRunnerHostedService
+    internal class IPolicyEvaluator
     {
     }
 }
