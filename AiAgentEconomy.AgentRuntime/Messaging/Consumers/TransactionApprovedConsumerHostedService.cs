@@ -92,10 +92,10 @@ public sealed class TransactionApprovedConsumerHostedService(
 
             // API'nin beklediği body
             var submitRequest = new SubmitTransactionHttpRequest(
-                Chain: "Arbitrum",
-                Network: "arbitrum-sepolia",
-                ExplorerUrl: null
-            );
+                                                                    Chain: "Arbitrum",
+                                                                    Network: "arbitrum-sepolia",
+                                                                    ExplorerUrl: null
+                                                                );
 
             await RetryPolicy.ExecuteAsync(
                 action: innerCt => lifecycle.SubmitAsync(evt.TransactionId, submitRequest, innerCt),
@@ -105,8 +105,6 @@ public sealed class TransactionApprovedConsumerHostedService(
                 operationName: $"Submit txId={evt.TransactionId}",
                 ct: ct
             );
-
-            await processedEvents.MarkCompletedAsync(eventKey, ct);
 
             await audit.WriteAsync(
                 new AuditRecord(
@@ -119,7 +117,43 @@ public sealed class TransactionApprovedConsumerHostedService(
                 ct
             );
 
-            logger.LogInformation("Submit pipeline completed for txId={TxId}", evt.TransactionId);
+            // MVP: submit sonrası settle
+            await audit.WriteAsync(
+                new AuditRecord(
+                    EventType: "Transaction.SettleRequested",
+                    CorrelationId: evt.CorrelationId,
+                    Actor: $"agent:{evt.AgentId}",
+                    OccurredAt: DateTimeOffset.UtcNow,
+                    Data: new { evt.TransactionId }
+                ),
+                ct
+            );
+
+            await RetryPolicy.ExecuteAsync(
+                action: innerCt => lifecycle.SettleAsync(evt.TransactionId, innerCt),
+                maxAttempts: 3,
+                initialDelay: TimeSpan.FromSeconds(1),
+                logger: logger,
+                operationName: $"Settle txId={evt.TransactionId}",
+                ct: ct
+            );
+
+            await audit.WriteAsync(
+                new AuditRecord(
+                    EventType: "Transaction.SettleSucceeded",
+                    CorrelationId: evt.CorrelationId,
+                    Actor: $"agent:{evt.AgentId}",
+                    OccurredAt: DateTimeOffset.UtcNow,
+                    Data: new { evt.TransactionId }
+                ),
+                ct
+            );
+
+            // Completed işaretini en sona koy
+            await processedEvents.MarkCompletedAsync(eventKey, ct);
+
+            logger.LogInformation("Submit+Settle pipeline completed for txId={TxId}", evt.TransactionId);
+
         }
         catch (Exception ex)
         {

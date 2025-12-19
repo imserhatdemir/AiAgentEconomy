@@ -4,9 +4,7 @@ using AiAgentEconomy.AgentRuntime.Messaging.Consumers;
 using AiAgentEconomy.AgentRuntime.Messaging.InMemory;
 using AiAgentEconomy.AgentRuntime.Observability;
 using AiAgentEconomy.AgentRuntime.Orchestration.Ports;
-using AiAgentEconomy.AgentRuntime.Policies;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;               
+using AiAgentEconomy.AgentRuntime.Policies;       
 
 namespace AiAgentEconomy.AgentRuntime.Hosting
 {
@@ -14,22 +12,14 @@ namespace AiAgentEconomy.AgentRuntime.Hosting
     {
         public static IServiceCollection AddAgentRuntime(this IServiceCollection services, IConfiguration config)
         {
-            // Observability
-            services.AddSingleton<IAuditWriter, AuditWriter>();
-            // Policies
-            services.AddSingleton<IPolicyEvaluator, DefaultPolicyEvaluator>();
             services.AddSingleton<IMessageBus, InMemoryMessageBus>();
             services.AddHostedService<TransactionApprovedConsumerHostedService>();
-            services.AddSingleton<IProcessedEventStore, InMemoryProcessedEventStore>();
-            //services.AddSingleton<ITransactionSubmitter, FakeTransactionSubmitter>();
-            services.AddHttpClient<ITransactionSubmitter, HttpTransactionSubmitter>(client =>
-            {
-                var baseUrl = config["AgentRuntime:ApiBaseUrl"];
-                if (string.IsNullOrWhiteSpace(baseUrl))
-                    throw new InvalidOperationException("AgentRuntime:ApiBaseUrl is not configured.");
 
-                client.BaseAddress = new Uri(baseUrl);
-            });
+            services.AddSingleton<IAuditWriter, AuditWriter>();
+            services.AddSingleton<IPolicyEvaluator, DefaultPolicyEvaluator>();
+
+            services.AddSingleton<IProcessedEventStore, InMemoryProcessedEventStore>();
+
             services.AddHttpClient<ITransactionLifecycleClient, HttpTransactionLifecycleClient>(client =>
             {
                 var baseUrl = config["AgentRuntime:ApiBaseUrl"];
