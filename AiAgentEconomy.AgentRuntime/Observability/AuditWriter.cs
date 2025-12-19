@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AiAgentEconomy.AgentRuntime.Observability
+﻿namespace AiAgentEconomy.AgentRuntime.Observability
 {
-    internal class AuditWriter
+    public sealed class AuditWriter(ILogger<AuditWriter> logger) : IAuditWriter
     {
+        public Task WriteAsync(AuditRecord record, CancellationToken ct = default)
+        {
+            logger.LogInformation("AUDIT {EventType} CorrelationId={CorrelationId} Actor={Actor} At={At} Data={Data}",
+                record.EventType, record.CorrelationId, record.Actor, record.OccurredAt, record.Data);
+            return Task.CompletedTask;
+        }
     }
 }

@@ -6,7 +6,16 @@ using System.Threading.Tasks;
 
 namespace AiAgentEconomy.AgentRuntime.Hosting
 {
-    internal class AppHost
+    public static class AppHost
     {
+        public static Task RunAsync(string[] args)
+        {
+            var builder = Host.CreateApplicationBuilder(args);
+
+            builder.Services.AddAgentRuntime(builder.Configuration);
+
+            var app = builder.Build();
+            return app.RunAsync();
+        }
     }
 }

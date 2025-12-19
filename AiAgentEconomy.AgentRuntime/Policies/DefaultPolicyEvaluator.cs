@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AiAgentEconomy.AgentRuntime.Policies
+﻿namespace AiAgentEconomy.AgentRuntime.Policies
 {
-    internal class DefaultPolicyEvaluator
+    public sealed class DefaultPolicyEvaluator : IPolicyEvaluator
     {
+        public Task<PolicyDecision> EvaluateAsync(PolicyContext ctx, CancellationToken ct = default)
+            => Task.FromResult(new PolicyDecision(true));
     }
 }

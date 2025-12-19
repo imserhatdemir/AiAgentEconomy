@@ -1,14 +1,20 @@
-namespace AiAgentEconomy.AgentRuntime
-{
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = Host.CreateApplicationBuilder(args);
-            builder.Services.AddHostedService<Worker>();
+using AiAgentEconomy.AgentRuntime.Hosting;
+using Microsoft.Extensions.Hosting;
 
-            var host = builder.Build();
-            host.Run();
-        }
+namespace AiAgentEconomy.AgentRuntime;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        var builder = Host.CreateApplicationBuilder(args);
+
+        // Core AgentRuntime registrations (Policies, Observability, Messaging abstractions, etc.)
+        builder.Services.AddAgentRuntime(builder.Configuration);
+
+        builder.Services.AddHostedService<Worker>();
+
+        var host = builder.Build();
+        host.Run();
     }
 }

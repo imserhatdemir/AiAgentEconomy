@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AiAgentEconomy.AgentRuntime.Policies
+﻿namespace AiAgentEconomy.AgentRuntime.Policies
 {
-    internal class IPolicyEvaluator
+    public interface IPolicyEvaluator
     {
+        Task<PolicyDecision> EvaluateAsync(PolicyContext ctx, CancellationToken ct = default);
     }
+
+    public sealed record PolicyContext(Guid AgentId, Guid TransactionId, decimal Amount, string Currency);
+
+    public sealed record PolicyDecision(bool Allowed, string? Reason = null);
 }
