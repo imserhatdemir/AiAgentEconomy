@@ -1,4 +1,5 @@
-﻿using AiAgentEconomy.AgentRuntime.Memory;
+﻿using AiAgentEconomy.AgentRuntime.AI.Agents;
+using AiAgentEconomy.AgentRuntime.Memory;
 using AiAgentEconomy.AgentRuntime.Messaging.Abstractions;
 using AiAgentEconomy.AgentRuntime.Messaging.Contracts;
 using AiAgentEconomy.AgentRuntime.Observability;
@@ -16,7 +17,8 @@ public sealed class TransactionApprovedConsumerHostedService(
     IAuditWriter audit,
     IProcessedEventStore processedEvents,
     ITransactionLifecycleClient lifecycle,
-    ILogger<TransactionApprovedConsumerHostedService> logger
+    ILogger<TransactionApprovedConsumerHostedService> logger,
+    TransactionAgent agent
 ) : IHostedService
 {
     public Task StartAsync(CancellationToken cancellationToken)
@@ -148,7 +150,7 @@ public sealed class TransactionApprovedConsumerHostedService(
                 ),
                 ct
             );
-
+            await agent.RunAsync(evt, ct);
             // Completed işaretini en sona koy
             await processedEvents.MarkCompletedAsync(eventKey, ct);
 

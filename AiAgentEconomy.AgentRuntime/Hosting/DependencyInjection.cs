@@ -1,4 +1,8 @@
-﻿using AiAgentEconomy.AgentRuntime.Memory;
+﻿using AiAgentEconomy.AgentRuntime.AI.Agents;
+using AiAgentEconomy.AgentRuntime.AI.Configuration;
+using AiAgentEconomy.AgentRuntime.AI.Kernel;
+using AiAgentEconomy.AgentRuntime.AI.Tools;
+using AiAgentEconomy.AgentRuntime.Memory;
 using AiAgentEconomy.AgentRuntime.Messaging.Abstractions;
 using AiAgentEconomy.AgentRuntime.Messaging.Consumers;
 using AiAgentEconomy.AgentRuntime.Messaging.InMemory;
@@ -28,7 +32,12 @@ namespace AiAgentEconomy.AgentRuntime.Hosting
 
                 client.BaseAddress = new Uri(baseUrl);
             });
+            services.Configure<OpenAiOptions>(
+            config.GetSection(OpenAiOptions.SectionName));
 
+            services.AddSingleton<KernelFactory>();
+            services.AddSingleton<TransactionLifecycleTool>();
+            services.AddSingleton<TransactionAgent>();
             return services;
         }
     }
