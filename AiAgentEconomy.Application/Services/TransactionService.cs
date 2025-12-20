@@ -3,6 +3,7 @@ using AiAgentEconomy.Application.Interfaces;
 using AiAgentEconomy.Contracts.Transactions;
 using AiAgentEconomy.Domain.Agents;
 using AiAgentEconomy.Domain.Transactions;
+using AiAgentEconomy.Contracts.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace AiAgentEconomy.Application.Services
         private readonly IAgentPolicyRepository _policyRepo;
         private readonly IMarketplaceRepository _marketplaceRepo;
         private readonly IBlockchainTransactionSender _blockchainSender;
+        private readonly IEventPublisher _publisher;
 
         public TransactionService(
             IAgentRepository agentRepo,
@@ -26,7 +28,8 @@ namespace AiAgentEconomy.Application.Services
             ITransactionRepository txRepo,
             IAgentPolicyRepository policyRepo,
             IMarketplaceRepository marketplaceRepo,
-            IBlockchainTransactionSender blockchainSender)
+            IBlockchainTransactionSender blockchainSender,
+            IEventPublisher publisher)
         {
             _agentRepo = agentRepo;
             _walletRepo = walletRepo;
@@ -34,12 +37,13 @@ namespace AiAgentEconomy.Application.Services
             _policyRepo = policyRepo;
             _marketplaceRepo = marketplaceRepo;
             _blockchainSender = blockchainSender;
+            _publisher = publisher;
         }
 
         public async Task<TransactionDto> CreateForAgentAsync(
-           Guid agentId,
-           CreateTransactionRequest request,
-           CancellationToken ct = default)
+    Guid agentId,
+    CreateTransactionRequest request,
+    CancellationToken ct = default)
         {
             // 1) Agent (tracked)
             var agent = await _agentRepo.GetByIdForUpdateAsync(agentId, ct);
@@ -84,8 +88,9 @@ namespace AiAgentEconomy.Application.Services
             decimal? unitPrice = null;
             string? unitPriceCurrency = null;
 
-            // 5) Decision pipeline
+            // Decision pipeline
             string? rejectReason = null;
+            var approved = false;
 
             // 5.1 Agent gates
             if (agent.Status != AgentStatus.Active)
@@ -101,9 +106,13 @@ namespace AiAgentEconomy.Application.Services
             if (rejectReason is null && txType == TransactionType.ServicePurchase)
             {
                 if (string.IsNullOrWhiteSpace(vendor))
+                {
                     rejectReason = "VENDOR_REQUIRED";
+                }
                 else if (string.IsNullOrWhiteSpace(serviceCode))
+                {
                     rejectReason = "SERVICE_REQUIRED";
+                }
                 else
                 {
                     var vendorEntity = await _marketplaceRepo.GetVendorByNameAsync(vendor, ct);
@@ -117,10 +126,7 @@ namespace AiAgentEconomy.Application.Services
                     }
                     else
                     {
-                        // Repo method name in your code: GetServiceAsync(...)
-                        // If you changed it to GetActiveServiceAsync(...), update here accordingly.
                         var svc = await _marketplaceRepo.GetServiceAsync(vendorEntity.Id, serviceCode, ct);
-
                         if (svc is null)
                         {
                             rejectReason = "MARKETPLACE_SERVICE_NOT_FOUND";
@@ -135,7 +141,6 @@ namespace AiAgentEconomy.Application.Services
                         }
                         else if (svc.Price != request.Amount)
                         {
-                            // MVP rule: request amount must equal marketplace service price
                             rejectReason = "MARKETPLACE_PRICE_MISMATCH";
                         }
                         else
@@ -173,6 +178,8 @@ namespace AiAgentEconomy.Application.Services
                     {
                         // Approved: reserve budgets
                         tx.Approve();
+                        approved = true;
+
                         agent.AddSpent(request.Amount);
                         policy.AddDailySpend(request.Amount, now);
                     }
@@ -181,6 +188,8 @@ namespace AiAgentEconomy.Application.Services
                 {
                     // No policy => monthly budget only (already checked)
                     tx.Approve();
+                    approved = true;
+
                     agent.AddSpent(request.Amount);
                 }
             }
@@ -195,7 +204,6 @@ namespace AiAgentEconomy.Application.Services
                 // Attach marketplace snapshot if validated
                 if (vendorId.HasValue && marketplaceServiceId.HasValue && unitPrice.HasValue)
                 {
-                    // Requires Transaction.AttachMarketplace(...) you added in Domain
                     tx.AttachMarketplace(
                         vendorId.Value,
                         marketplaceServiceId.Value,
@@ -208,6 +216,21 @@ namespace AiAgentEconomy.Application.Services
             // 6) Persist
             await _txRepo.AddAsync(tx, ct);
             await _txRepo.SaveChangesAsync(ct);
+
+            // 7) Publish (only if Approved)
+            if (approved)
+            {
+                var evt = new TransactionApprovedEvent(
+                    TransactionId: tx.Id,
+                    AgentId: tx.AgentId,
+                    Amount: tx.Amount,
+                    Currency: tx.Currency,
+                    CorrelationId: Guid.NewGuid().ToString("N"),
+                    OccurredAt: DateTimeOffset.UtcNow
+                );
+
+                await _publisher.PublishAsync(evt, routingKey: "transactions.approved", ct);
+            }
 
             return ToDto(tx);
         }
